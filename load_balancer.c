@@ -96,14 +96,14 @@ void loader_add_server(load_balancer *main, int server_id) {
     }
 
     if (a.tag < main->serv_vect[0].tag) {
-        for (unsigned int i = main->serv_num; i > 0; i--)
+        for (int i = main->serv_num; i > 0; i--)
             main->serv_vect[i] = main->serv_vect[i - 1];
         main->serv_vect[0] = a;
         main->serv_num++;
     } else {
-        for (unsigned int i = 1; i < main->serv_num; i++) {
+        for (int i = 1; i < main->serv_num; i++) {
             if (main->serv_vect[i - 1].tag < a.tag) {
-                for (unsigned int j = main->serv_num; j > i; j--)
+                for (int j = main->serv_num; j > i; j--)
                     main->serv_vect[j] = main->serv_vect[j - 1];
                 main->serv_vect[i] = a;
                 main->serv_num++;
@@ -113,14 +113,14 @@ void loader_add_server(load_balancer *main, int server_id) {
     }
 
     if (b.tag < main->serv_vect[0].tag) {
-        for (unsigned int i = main->serv_num; i > 0; i--)
+        for (int i = main->serv_num; i > 0; i--)
             main->serv_vect[i] = main->serv_vect[i - 1];
         main->serv_vect[0] = b;
         main->serv_num++;
     } else {
-        for (unsigned int i = 1; i < main->serv_num; i++) {
+        for (int i = 1; i < main->serv_num; i++) {
             if (main->serv_vect[i - 1].tag < b.tag) {
-                for (unsigned int j = main->serv_num; j > i; j--)
+                for (int j = main->serv_num; j > i; j--)
                     main->serv_vect[j] = main->serv_vect[j - 1];
                 main->serv_vect[i] = b;
                 main->serv_num++;
@@ -130,14 +130,14 @@ void loader_add_server(load_balancer *main, int server_id) {
     }
 
     if (c.tag < main->serv_vect[0].tag) {
-        for (unsigned int i = main->serv_num; i > 0; i--)
+        for (int i = main->serv_num; i > 0; i--)
             main->serv_vect[i] = main->serv_vect[i - 1];
         main->serv_vect[0] = c;
         main->serv_num++;
     } else {
-        for (unsigned int i = 1; i < main->serv_num; i++) {
+        for (int i = 1; i < main->serv_num; i++) {
             if (main->serv_vect[i - 1].tag < c.tag) {
-                for (unsigned int j = main->serv_num; j > i; j--)
+                for (int j = main->serv_num; j > i; j--)
                     main->serv_vect[j] = main->serv_vect[j - 1];
                 main->serv_vect[i] = c;
                 main->serv_num++;
@@ -152,7 +152,7 @@ void server_free(server_memory **serv)
 {
     server_memory *server;
     server = *serv;
-    for (unsigned int i = 0; i < server->hmax; i++) {
+    for (int i = 0; i < server->hmax; i++) {
 		server->buckets[i] = ll_free(sizeof(product));
 	}
     free(server);
@@ -160,12 +160,12 @@ void server_free(server_memory **serv)
 
 void loader_remove_aux(load_balancer *main, unsigned int id)
 {
-    for (unsigned int i = 0; i < main->serv_num; i++) {
+    for (int i = 0; i < main->serv_num; i++) {
         if (main->serv_vect[i].tag == id) {
             if (main->serv_vect[i].parent) {
                 server_free(&main->serv_vect[i].parent);
             }            
-            for (unsigned int j = i; j < main->serv_num - 1; j++) {
+            for (int j = i; j < main->serv_num - 1; j++) {
                 main->serv_vect[j] = main->serv_vect[j + 1];
             }
             main->serv_num--;
@@ -194,7 +194,7 @@ void loader_store(load_balancer *main, char *key, char *value, int *server_id) {
         server_id = &main->serv_vect[0].tag;
         server = main->serv_vect[0].parent;
     } else {
-        for (unsigned int i = 0; i < main->serv_num; i++) {
+        for (int i = 0; i < main->serv_num; i++) {
             if (prod_id < main->serv_vect[i].tag) {
                 server_id = &main->serv_vect[i].tag;
                 server = main->serv_vect[i].parent;
@@ -215,7 +215,7 @@ char *loader_retrieve(load_balancer *main, char *key, int *server_id) {
         server_id = &main->serv_vect[0].tag;
         server = main->serv_vect[0].parent;
     } else {
-        for (unsigned int i = 0; i < main->serv_num; i++) {
+        for (int i = 0; i < main->serv_num; i++) {
             if (prod_id < main->serv_vect[i].tag) {
                 server_id = &main->serv_vect[i].tag;
                 server = main->serv_vect[i].parent;
@@ -230,7 +230,7 @@ char *loader_retrieve(load_balancer *main, char *key, int *server_id) {
 void free_load_balancer(load_balancer *main) {
     /* TODO 6 */
     server_memory *server;
-    for (unsigned int i = 0; i < main->serv_num; i++) {
+    for (int i = 0; i < main->serv_num; i++) {
         server = main->serv_vect[i].parent;
         if (server) {
             free_server_memory(server);
