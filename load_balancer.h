@@ -12,8 +12,9 @@
 
 typedef struct label label;
 struct label {
-    server_memory *parent;
+    server_memory *server;
     unsigned int tag;
+    int server_id;
 };
 
 //struct server_memory;

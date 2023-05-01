@@ -27,8 +27,8 @@ typedef struct server_memory server_memory;
 struct server_memory {
     linked_list_t **buckets; /* Array de liste simplu-inlantuite. */
 	/* Nr. total de noduri existente curent in toate bucket-urile. */
-    size_t key_size;
-    size_t value_size;
+    unsigned int key_size;
+    unsigned int value_size;
 	unsigned int size;
 	unsigned int hmax; /* Nr. de bucket-uri. */
 	/* (Pointer la) Functie pentru a calcula valoarea hash asociata cheilor. */

@@ -127,7 +127,7 @@ void ll_free(linked_list_t** pp_list)
     *pp_list = NULL;
 }
 
-unsigned int hash_function_key(void *a) {
+unsigned int hash_function_k(void *a) {
     unsigned char *puchar_a = (unsigned char *)a;
     unsigned int hash = 5381;
     int c;
@@ -202,13 +202,13 @@ server_memory *init_server_memory()
 	server_memory *server;
 	server = malloc(sizeof(server_memory));
 	server->compare_function = compare_function_strings;
-	server->hash_function = hash_function_key;
+	server->hash_function = hash_function_k;
 	server->key_val_free_function = key_val_free_function;
 	server->key_size = 128;
     server->value_size = 65536;
 	server->hmax = 20;
 	server->size = 0;
-	for (int i = 0; i < server->hmax; i++) {
+	for (unsigned int i = 0; i < server->hmax; i++) {
 		server->buckets[i] = ll_create(sizeof(product));
 	}
 	return server;
@@ -281,7 +281,7 @@ void server_remove(server_memory *server, char *key) {
 
 void free_server_memory(server_memory *server) {
 	/* TODO 5 */
-	for (int i = 0; i < server->hmax; i++) {
+	for (unsigned int i = 0; i < server->hmax; i++) {
 		ll_free(&(server->buckets[i]));
 		free(server->buckets[i]);
 	}
