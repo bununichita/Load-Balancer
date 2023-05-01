@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <stdio.h>
+
 #include "load_balancer.h"
 
 unsigned int hash_function_servers(void *a) {
@@ -56,6 +58,8 @@ void add_first(load_balancer *main, label a, label b, label c)
     if (b.tag < a.tag) {
         main->serv_vect[0] = b;
         main->serv_vect[1] = a;
+    } else {
+        main->serv_vect[1] = b;
     }
     if (c.tag < main->serv_vect[0].tag) {
         main->serv_vect[2] = main->serv_vect[1];
@@ -68,6 +72,10 @@ void add_first(load_balancer *main, label a, label b, label c)
         main->serv_vect[1] = c;
     }
     main->serv_num = 3;
+
+    for (unsigned int i = 0; i <main->serv_num; i++) {
+        // //printf("%u, %u\n", main->serv_vect[i].server_id, main->serv_vect[i].tag);
+    }
 }
 
 label find_next_label(load_balancer *main, label a)
@@ -88,6 +96,7 @@ label find_next_label(load_balancer *main, label a)
 
 void load_balance_add(load_balancer *main, label a, label next_label)
 {
+    // //printf("%u\n", next_label.server->hmax);
     for (unsigned int i = 0; i < next_label.server->hmax; i++) {
         linked_list_t *list = next_label.server->buckets[i];
         ll_node_t *curr;
@@ -95,6 +104,8 @@ void load_balance_add(load_balancer *main, label a, label next_label)
         for (unsigned int j = 0; j < list->size; j++) {
             unsigned int hash;
             hash = next_label.server->hash_function(((product *)curr->data)->key);
+            ll_node_t *aux;
+            aux = curr->next;
             if (hash < a.tag) {
                 server_store(a.server, ((product *)curr->data)->key, ((product *)curr->data)->value);
                 server_remove(next_label.server, ((product *)curr->data)->key);
@@ -103,37 +114,54 @@ void load_balance_add(load_balancer *main, label a, label next_label)
                 server_store(a.server, ((product *)curr->data)->key, ((product *)curr->data)->value);
                 server_remove(next_label.server, ((product *)curr->data)->key);
             }
-            curr = curr->next;
+            curr = aux;
         }
     }
 }
 
-void server_vector_add(load_balancer *main, label a)
+void server_vector_add(load_balancer *main, label a, label next_label)
 {
-    if (a.tag < main->serv_vect[0].tag) {
-        for (unsigned int i = main->serv_num; i > 0; i--)
-            main->serv_vect[i] = main->serv_vect[i - 1];
-        main->serv_vect[0] = a;
-        main->serv_num++;
+    unsigned int poz;
+    if (next_label.server_id == main->serv_vect[0].server_id) {
+        if (a.tag < next_label.tag) {
+            poz = 0;
+            // //printf("///////////////////a.tag = %u       next_label.tag = %u\n", a.tag, next_label.tag);
+        } else {
+            poz = main->serv_num;
+        }
     } else {
-        for (unsigned int i = 1; i < main->serv_num; i++) {
-            if (main->serv_vect[i - 1].tag < a.tag) {
-                for (unsigned int j = main->serv_num; j > i; j--)
-                    main->serv_vect[j] = main->serv_vect[j - 1];
-                main->serv_vect[i] = a;
-                main->serv_num++;
+        for (unsigned i = 1; i < main->serv_num; i++) {
+            if (main->serv_vect[i].server_id == next_label.server_id) {
+                poz = i;
                 break;
             }
         }
     }
+    if (!poz) {
+        //printf("a.server_id = %u\n", a.server_id);
+        //printf("memoria = %u\n", main->hmax);
+        for (unsigned int i = main->serv_num; i > 0; i--) {
+            //printf("i = %u\n", i);
+            main->serv_vect[i] = main->serv_vect[i - 1];
+        }
+        main->serv_vect[0] = a;
+        main->serv_num++;
+    } else {       
+        for (unsigned int i = main->serv_num; i > poz; i--)
+            main->serv_vect[i] = main->serv_vect[i - 1];
+        //printf("poz = %u\n", poz);
+        main->serv_vect[poz] = a;
+        main->serv_num++;
+    }
+    
 }
 
 void loader_add_server(load_balancer *main, int server_id) {
     /* TODO 2 */
     server_memory *new_1, *new_2, *new_3;
-    new_1 = malloc(sizeof(server_memory));
-    new_2 = malloc(sizeof(server_memory));
-    new_3 = malloc(sizeof(server_memory));
+    new_1 = init_server_memory();
+    new_2 = init_server_memory();
+    new_3 = init_server_memory();
     label a, b, c;
     a.server = new_1;
     b.server = new_2;
@@ -147,8 +175,11 @@ void loader_add_server(load_balancer *main, int server_id) {
     c.tag = main->hash_function_servers(&server_id);
     c.server_id = server_id;
     if (main->serv_num >= main->hmax - 2) {
-        size_t new_size = main->hmax * 2 * sizeof(server_memory *);
+        size_t new_size = main->hmax * 2 * sizeof(label);
         main->serv_vect = realloc(main->serv_vect, new_size);
+        // for (unsigned int i = 0; i < main->hmax; i++) {
+        //     main->serv_vect[main->hmax + i] = 
+        // }
         main->hmax *= 2;
     }
 
@@ -157,22 +188,34 @@ void loader_add_server(load_balancer *main, int server_id) {
         add_first(main, a, b, c);
     } else {
         next_label = find_next_label(main, a);
+        //printf("a.tag = %u  next_label tag = %u\n", a.tag, next_label.tag);
+        //printf("next_label id = %u\n", next_label.server_id);
 
         load_balance_add(main, a, next_label);
 
-        server_vector_add(main, a);
+        server_vector_add(main, a, next_label);
 
         next_label = find_next_label(main, b);
 
+        //printf("b.tag = %u  next_label tag = %u\n", b.tag, next_label.tag);
+        //printf("next_label id = %u\n", next_label.server_id);
+
         load_balance_add(main, b, next_label);
 
-        server_vector_add(main, b);
+        server_vector_add(main, b, next_label);
 
         next_label = find_next_label(main, c);
 
+        //printf("c.tag = %u  next_label tag = %u\n", c.tag, next_label.tag);
+        //printf("next_label id = %u\n", next_label.server_id);
+
         load_balance_add(main, c, next_label);
 
-        server_vector_add(main, c);
+        server_vector_add(main, c, next_label);
+    }
+
+    for (unsigned int i = 0; i < main->serv_num; i++) {
+        //printf("%u  id = %u tag = %u\n", i, main->serv_vect[i].server_id, main->serv_vect[i].tag);
     }
 }
 
@@ -189,7 +232,7 @@ void loader_add_server(load_balancer *main, int server_id) {
 void load_rem_label_vect(load_balancer *main, unsigned int id)
 {
     for (unsigned int i = 0; i < main->serv_num; i++) {
-        if (main->serv_vect[i].server_id == id) {           
+        if ((unsigned int)main->serv_vect[i].server_id == id) {           
             for (unsigned int j = i; j < main->serv_num - 1; j++) {
                 main->serv_vect[j] = main->serv_vect[j + 1];
             }
@@ -208,17 +251,16 @@ void load_balance_rem(load_balancer  *main, int server_id)
             break;
         }
     }
-
     label next_label;
-    find_next_label(main, a);
-
+    next_label = find_next_label(main, a);
     for (unsigned int i = 0; i < a.server->hmax; i++) {
         linked_list_t *list = a.server->buckets[i];
         ll_node_t *curr;
         curr = list->head;
         for (unsigned int j = 0; j < list->size; j++) {
             server_store(next_label.server, ((product *)curr->data)->key, ((product *)curr->data)->value);
-            server_remove(a.server, ((product *)curr->data)->key);
+            // ll_node_t *aux = curr->next;
+            // server_remove(a.server, ((product *)curr->data)->key);
             curr = curr->next;
         }
     }
@@ -241,18 +283,20 @@ void loader_store(load_balancer *main, char *key, char *value, int *server_id) {
     unsigned int prod_id;
     server_memory *server;
     prod_id = main->hash_function_key(key);
+
     if (prod_id > main->serv_vect[main->serv_num - 1].tag) {
-        server_id = &main->serv_vect[0].server_id;
+        *server_id = main->serv_vect[0].server_id;
         server = main->serv_vect[0].server;
     } else {
         for (unsigned int i = 0; i < main->serv_num; i++) {
-            if (prod_id < main->serv_vect[i].tag) {
-                server_id = &main->serv_vect[i].tag;
+            if (main->serv_vect[i].tag > prod_id) {
+                *server_id = main->serv_vect[i].server_id;
                 server = main->serv_vect[i].server;
                 break;
             }
         }
     }
+    *server_id = *server_id - (*server_id / 100000) * 100000;
     server_store(server, key, value);    
 }
 
@@ -262,17 +306,18 @@ char *loader_retrieve(load_balancer *main, char *key, int *server_id) {
     server_memory *server;
     prod_id = main->hash_function_key(key);
     if (prod_id > main->serv_vect[main->serv_num - 1].tag) {
-        server_id = &main->serv_vect[0].server_id;
+        *server_id = main->serv_vect[0].server_id;
         server = main->serv_vect[0].server;
     } else {
         for (unsigned int i = 0; i < main->serv_num; i++) {
             if (prod_id < main->serv_vect[i].tag) {
-                server_id = &main->serv_vect[i].server_id;
+                *server_id = main->serv_vect[i].server_id;
                 server = main->serv_vect[i].server;
                 break;
             }
         }
     }
+    *server_id = *server_id - (*server_id / 100000) * 100000;
     return server_retrieve(server, key);
 }
 
@@ -285,5 +330,6 @@ void free_load_balancer(load_balancer *main) {
             free_server_memory(server);
         }
     }
+    free(main->serv_vect);
     free(main);
 }

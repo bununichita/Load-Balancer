@@ -39,6 +39,8 @@ struct server_memory {
 	void (*key_val_free_function)(void*);
 };
 
+void key_val_free_function(void *data);
+
 /** init_server_memory() -  Initializes the memory for a new server struct.
  * 							Make sure to check what is returned by malloc using DIE.
  * 							Use the linked list implementation from the lab.

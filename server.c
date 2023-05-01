@@ -117,7 +117,7 @@ void ll_free(linked_list_t** pp_list)
 
     while (ll_get_size(*pp_list) > 0) {
         currNode = ll_remove_nth_node(*pp_list, 0);
-        free(currNode->data);
+        key_val_free_function(currNode->data);
         currNode->data = NULL;
         free(currNode);
         currNode = NULL;
@@ -208,6 +208,7 @@ server_memory *init_server_memory()
     server->value_size = 65536;
 	server->hmax = 20;
 	server->size = 0;
+	server->buckets = malloc(server->hmax * sizeof(linked_list_t *));
 	for (unsigned int i = 0; i < server->hmax; i++) {
 		server->buckets[i] = ll_create(sizeof(product));
 	}
@@ -233,13 +234,13 @@ void server_store(server_memory *server, char *key, char *value) {
 		memcpy(new->key, (const void *)key, server->key_size);
 		memcpy(new->value, (const void *)value, server->value_size);
 		ll_add_nth_node(server->buckets[valoare_hash], 0, (const void *)new);
+		free(new);
 	}
 
 }
 
 char *server_retrieve(server_memory *server, char *key) {
 	/* TODO 3 */
-	return NULL;
 	unsigned int valoare_hash = server->hash_function(key) % server->hmax;
 	ll_node_t *current;
 	if (server->buckets[valoare_hash]->size == 0) {
@@ -276,14 +277,17 @@ void server_remove(server_memory *server, char *key) {
 	}
 	ll_node_t *aux;
 	aux = ll_remove_nth_node(server->buckets[valoare_hash], pozitie);	
+	
 	server->key_val_free_function(aux->data);
+	free(aux);
 }
 
 void free_server_memory(server_memory *server) {
 	/* TODO 5 */
 	for (unsigned int i = 0; i < server->hmax; i++) {
 		ll_free(&(server->buckets[i]));
-		free(server->buckets[i]);
+		// free(server->buckets[i]);
 	}
+	free(server->buckets);
 	free(server);
 }
