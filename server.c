@@ -174,7 +174,7 @@ int ht_has_key(server_memory *ht, void *key)
 	return 0;
 }
 
-void *ht_get(server_memory *ht, void *key)
+char *ht_get(server_memory *ht, void *key)
 {
 	/* TODO */
 	unsigned int valoare_hash = ht->hash_function(key) % ht->hmax;
@@ -222,12 +222,13 @@ void server_store(server_memory *server, char *key, char *value) {
 		//Exista cheia si modific valoarea
 		// ll_node_t *current;
 		// current = ht->buckets[valoare_hash]->head;
-		product *new = (product *)malloc(sizeof(product));
-		new->value = malloc(server->key_size);
-		memcpy((product *)new->key, (const void *)key, sizeof(server->key_size));
-		memcpy((product *)new->value, (const void *)value, server->value_size);
-		memcpy(((product *)ht_get(server, key))->value, (const void *)new->value, server->value_size);
-	} else {
+		// product *new = (product *)malloc(sizeof(product));
+		// new->key = malloc(server->key_size);
+		// new->value = malloc(server->value_size);
+		// memcpy((product *)new->key, (const void *)key, server->key_size);
+		// memcpy((product *)new->value, (const void *)value, server->value_size);
+		memcpy(ht_get(server, key), value, server->value_size);
+	}
 		product *new = (product*)malloc(sizeof(product));
 		new->key = malloc(server->key_size);
 		new->value = malloc(server->value_size);
@@ -235,7 +236,6 @@ void server_store(server_memory *server, char *key, char *value) {
 		memcpy(new->value, (const void *)value, server->value_size);
 		ll_add_nth_node(server->buckets[valoare_hash], 0, (const void *)new);
 		free(new);
-	}
 
 }
 
