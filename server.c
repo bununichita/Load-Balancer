@@ -182,15 +182,22 @@ char *ht_get(server_memory *ht, void *key)
 	if (ht->buckets[valoare_hash]->size == 0) {
 		return NULL;
 	}
+	
+	// while (current->next) {
+	// 	if (!ht->compare_function(key, ((product *)current->data)->key)) {
+	// 		return ((product *)current->data)->value;
+	// 	}
+	// 	current = current->next;
+	// }
+	// if (!ht->compare_function(key, ((product *)current->data)->key)) {
+	// 	return ((product *)current->data)->value;
+	// }
 	current = ht->buckets[valoare_hash]->head;
-	while (current->next) {
+	for (int i = 0; i < ht->size; i++) {
 		if (!ht->compare_function(key, ((product *)current->data)->key)) {
 			return ((product *)current->data)->value;
 		}
 		current = current->next;
-	}
-	if (!ht->compare_function(key, ((product *)current->data)->key)) {
-		return ((product *)current->data)->value;
 	}
 	return NULL;
 }
@@ -206,7 +213,7 @@ server_memory *init_server_memory()
 	server->key_val_free_function = key_val_free_function;
 	server->key_size = 128;
     server->value_size = 65536;
-	server->hmax = 20;
+	server->hmax = 113;
 	server->size = 0;
 	server->buckets = malloc(server->hmax * sizeof(linked_list_t *));
 	for (unsigned int i = 0; i < server->hmax; i++) {
@@ -261,7 +268,7 @@ char *server_retrieve(server_memory *server, char *key) {
 
 void server_remove(server_memory *server, char *key) {
 	/* TODO 4 */
-	if (!server_retrieve(server, key)) {
+	if (!ht_get(server, key)) {
 		return;
 	}
 	unsigned int valoare_hash = server->hash_function(key) % server->hmax;

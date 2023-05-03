@@ -4,42 +4,8 @@
 
 #include "server.h"
 
-// typedef struct server server;
-// struct server {
-// 	void *key;
-// 	void *value;
-// };
-
-typedef struct label label;
-struct label {
-    server_memory *parent;
-    unsigned int tag;
-};
-
-//struct server_memory;
+struct load_balancer;
 typedef struct load_balancer load_balancer;
-struct load_balancer {
-    label *serv_vect;
-    unsigned int serv_num;
-    unsigned int (*hash_function_servers)(void*);
-    unsigned int (*hash_function_key)(void*);
-    unsigned int hmax;
-
-};
-
-
-
-// struct load_balancer;
-// typedef struct load_balancer load_balancer;
-
-// struct load_balancer
-// {
-//     /* data */
-// };
-
-
-
-
 
 /**
  * init_load_balancer() - initializes the memory for a new load balancer and its fields and

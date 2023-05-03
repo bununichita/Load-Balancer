@@ -98,7 +98,7 @@ label find_next_label(load_balancer *main, label a)
 void load_balance_add(load_balancer *main, label a, label next_label)
 {
 	// //printf("%u\n", next_label.server->hmax);
-	printf("%u\n", next_label.server_id);
+	//printf("%u\n", next_label.server_id);
 	for (unsigned int i = 0; i < next_label.server->hmax; i++) {
 		linked_list_t *list = next_label.server->buckets[i];
 		ll_node_t *curr;
@@ -106,20 +106,7 @@ void load_balance_add(load_balancer *main, label a, label next_label)
 		for (unsigned int j = 0; j < list->size; j++) {
 			unsigned int hash;
 			hash = next_label.server->hash_function(((product *)curr->data)->key);
-			printf("%u %s\n", hash, ((product *)curr->data)->value);
-			ll_node_t *aux;
-			aux = curr->next;
-			curr = aux;
-		}
-	}
-	for (unsigned int i = 0; i < next_label.server->hmax; i++) {
-		linked_list_t *list = next_label.server->buckets[i];
-		ll_node_t *curr;
-		curr = list->head;
-		for (unsigned int j = 0; j < list->size; j++) {
-			unsigned int hash;
-			hash = next_label.server->hash_function(((product *)curr->data)->key);
-			printf("%u %s\n", hash, ((product *)curr->data)->value);
+			//printf("%u %s\n", hash, ((product *)curr->data)->value);
 			ll_node_t *aux;
 			aux = curr->next;
 			if (hash < a.tag && next_label.server_id != main->serv_vect[0].server_id) {
@@ -236,14 +223,25 @@ void loader_add_server(load_balancer *main, int server_id) {
 	// for (unsigned int i = 0; i < main->serv_num; i++) {
 	//     printf("%u  id = %u tag = %u\n", i, main->serv_vect[i].server_id, main->serv_vect[i].tag);
 	// }
-	for (unsigned int i = 0; i < main->serv_num; i++) {
-		printf("%u ", main->serv_vect[i].server_id);
-	}
-	printf("\n");
-	for (unsigned int i = 0; i < main->serv_num; i++) {
-		printf("%u ", main->serv_vect[i].tag);
-	}
-	printf("\n");
+
+	///////////////////////////////////////////////////////////////////////////
+	// printf("ADAUGARE\n");
+	// for (unsigned int i = 0; i < main->serv_num; i++) {
+	// 	printf("%u. %u	", i, main->serv_vect[i].tag);
+	// 	printf("%u\n", main->serv_vect[i].server_id);
+	// }
+	// printf("****************************************\n");
+	// for (unsigned int i = 1; i < main->serv_num; i++) {
+	// 	if (main->serv_vect[i].tag <= main->serv_vect[i - 1].tag) {
+	// 		printf("EROARE %u\n", main->serv_vect[i].tag);
+	// 	}
+	// }
+
+
+	// for (unsigned int i = 0; i < main->serv_num; i++) {
+	// 	printf("%u ", main->serv_vect[i].tag);
+	// }
+	// printf("\n");
 }
 
 // void server_free(server_memory **serv)
@@ -306,6 +304,15 @@ void loader_remove_server(load_balancer *main, int server_id) {
 	load_balance_rem(main, server_id);
 	server_id += 100000;
 	load_balance_rem(main, server_id);
+	////////////////////////////////////////////////
+
+
+	// printf("SCOATERE\n");
+	// for (unsigned int i = 0; i < main->serv_num; i++) {
+	// 	printf("%u. %u	", i, main->serv_vect[i].tag);
+	// 	printf("%u\n", main->serv_vect[i].server_id);
+	// }
+	// printf("****************************************\n");
 }
 
 void loader_store(load_balancer *main, char *key, char *value, int *server_id) {
@@ -337,7 +344,7 @@ char *loader_retrieve(load_balancer *main, char *key, int *server_id) {
 	unsigned int prod_id;
 	server_memory *server;
 	prod_id = main->hash_function_key(key);
-	printf("%u\n", prod_id);
+	//printf("%u\n", prod_id);
 	if (prod_id > main->serv_vect[main->serv_num - 1].tag) {
 		*server_id = main->serv_vect[0].server_id;
 		server = main->serv_vect[0].server;
@@ -346,7 +353,7 @@ char *loader_retrieve(load_balancer *main, char *key, int *server_id) {
 		for (unsigned int i = 0; i < main->serv_num; i++) {
 			if (prod_id < main->serv_vect[i].tag) {
 				*server_id = main->serv_vect[i].server_id;
-				printf("%u\n", *server_id);
+				//printf("%u\n", *server_id);
 				server = main->serv_vect[i].server;
 				break;
 			}
@@ -360,9 +367,10 @@ char *loader_retrieve(load_balancer *main, char *key, int *server_id) {
 		for (unsigned int j = 0; j < list->size; j++) {
 			unsigned int hash;
 			hash = server->hash_function(((product *)curr->data)->key);
-			printf("%u %s\n", hash, ((product *)curr->data)->value);
+			//printf("%u %s\n", hash, ((product *)curr->data)->value);
 			ll_node_t *aux;
 			aux = curr->next;
+
 			curr = aux;
 		}
 	}
