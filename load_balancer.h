@@ -4,12 +4,6 @@
 
 #include "server.h"
 
-// typedef struct server server;
-// struct server {
-// 	void *key;
-// 	void *value;
-// };
-
 typedef struct label label;
 struct label {
     server_memory *server;
@@ -17,15 +11,13 @@ struct label {
     int server_id;
 };
 
-//struct server_memory;
 typedef struct load_balancer load_balancer;
 struct load_balancer {
     label *serv_vect;
     unsigned int serv_num;
-    unsigned int (*hash_function_servers)(void*);
-    unsigned int (*hash_function_key)(void*);
+    unsigned int (*hash_function_servers)(void *);
+    unsigned int (*hash_function_key)(void *);
     unsigned int hmax;
-
 };
 
 
@@ -122,4 +114,4 @@ void loader_add_server(load_balancer *main, int server_id);
  */
 void loader_remove_server(load_balancer *main, int server_id);
 
-#endif /* LOAD_BALANCER_H_ */
+#endif  // LOAD_BALANCER_H_
